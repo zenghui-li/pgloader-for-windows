@@ -1,0 +1,20 @@
+load database
+     from 'sqlite/Chinook_Sqlite_AutoIncrementPKs.sqlite'
+     into postgresql:///pgloader
+
+ -- including only table names like 'Invoice%'
+
+ with workers = 4,
+      concurrency = 2,
+      on error stop,
+      include drop, create tables, create indexes, reset sequences, foreign keys,
+      preserve index names
+
+  -- alter table names matching ~/./ set schema 'chinook'
+  alter table names matching 'Employee' rename to 'staff'
+
+  set work_mem to '16MB', maintenance_work_mem to '512 MB',
+      search_path to 'chinook'
+
+  before load do
+  $$ create schema if not exists chinook; $$;

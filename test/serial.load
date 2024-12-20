@@ -1,0 +1,43 @@
+/*
+ * This test is ported from pgloader 2.x where it was defined as:
+ *
+ * [serial]
+ * table        = serial
+ * format       = text
+ * filename     = serial/serial.data
+ * field_sep    = ;
+ * columns      = b:2, c:1
+ *
+ */
+
+LOAD CSV
+     FROM inline (c, b)
+     INTO postgresql:///pgloader?serial (b, c)
+
+     WITH fields optionally enclosed by '"',
+          fields escaped by double-quote,
+          fields terminated by ';'
+
+      SET client_encoding to 'latin1',
+          work_mem to '12MB',
+          standard_conforming_strings to 'on'
+
+   BEFORE LOAD DO
+   $$ drop table if exists serial; $$,
+   $$ create table serial (
+       a serial primary key,
+       b date,
+       c text
+      );
+   $$;
+
+
+
+
+some first row text;2006-11-11
+some second row text;2006-11-11
+some third row text;2006-10-12
+\ ;2006-10-4
+some fifth row text;2006-5-12
+some sixth row text;2006-7-10
+some null date to play with;

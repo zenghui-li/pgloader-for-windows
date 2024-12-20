@@ -1,0 +1,59 @@
+/*
+ * This test is ported from pgloader 2.x where it was defined as:
+ *
+ * [errors]
+ * table        = errors
+ * format       = text
+ * filename     = errors/errors.data
+ * field_sep    = |
+ * trailing_sep = True
+ * columns      = a:1, b:3, c:2
+ *
+ *
+ * Note that we added ragged lines, empty lines, and lines with extra
+ * columns. The last line opens a quoted value and reaches end-of-file
+ * without closing it, too.
+ */
+
+LOAD CSV
+     FROM inline (a, c, b, trailing)
+     INTO postgresql:///pgloader?errors (a, b, c)
+
+     WITH fields optionally enclosed by '"',
+          fields escaped by double-quote,
+          fields terminated by '|'
+
+      SET client_encoding to 'latin1',
+          work_mem to '12MB',
+          standard_conforming_strings to 'on',
+          search_path to 'err'  -- test GUC settings in retry path
+
+   BEFORE LOAD DO
+     $$ drop schema if exists err cascade; $$,
+     $$ create schema err; $$,
+     $$ drop table if exists err.errors; $$,
+     $$ create table err.errors (
+         a integer primary key,
+         b date,
+         c text
+        );
+     $$;
+
+
+
+
+0|nov. the 11th should go|2006-11-11|
+1|12th of oct. should go|2006-10-12|
+2|expected error, month 13|2006-13-11|
+3|\ |2006-16-4|
+4|month should be may, ok|2006-5-12|
+
+
+5|another month 13, stress retry path|2006-13-10|
+6|some null date to play with||
+7|and a ragged line|
+8|and a line with extra columns|2014-01-23|hello|there|
+9|and another line|2014-01-22|
+
+
+10|"plop

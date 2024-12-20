@@ -1,0 +1,47 @@
+load database
+     from      mysql://root@localhost/sakila
+     into postgresql:///sakila
+
+ -- WITH include drop, create tables, no truncate,
+ --      create indexes, reset sequences, foreign keys
+
+ -- WITH batch rows = 10000
+
+ WITH concurrency = 1, workers = 6,
+      max parallel create index = 4
+
+      -- uncomment the following line to test loading into an already
+      -- existing schema, and make sure the schema actually is ready by
+      -- having done a first migration without those options:
+      , create no tables, include drop, truncate
+
+  SET maintenance_work_mem to '128MB',
+      work_mem to '12MB',
+      search_path to 'sakila, public, "$user"'
+
+ CAST type date drop not null drop default using zero-dates-to-null,
+      type datetime to timestamp drop default drop not null using zero-dates-to-null
+
+      -- type tinyint to boolean using tinyint-to-boolean,
+      -- type year to integer drop typemod -- now a default
+
+ -- MATERIALIZE VIEWS film_list, staff_list
+ MATERIALIZE ALL VIEWS
+
+ ALTER TABLE NAMES MATCHING ~/_list$/, 'sales_by_store', ~/sales_by/
+  SET SCHEMA 'mv'
+
+ ALTER TABLE NAMES MATCHING 'sales_by_store' RENAME TO 'sales_by_store_list'
+ ALTER TABLE NAMES MATCHING 'film' RENAME TO 'films'
+
+ ALTER SCHEMA 'sakila' RENAME TO 'pagila'
+
+ -- INCLUDING ONLY TABLE NAMES MATCHING ~/film/, 'actor'
+ EXCLUDING TABLE NAMES MATCHING ~<ory> ;
+
+
+ -- BEFORE LOAD DO
+ -- $$ create schema if not exists sakila; $$,
+ -- $$ create schema if not exists mv; $$,
+ -- $$ alter database sakila set search_path to sakila, mv, public; $$
+

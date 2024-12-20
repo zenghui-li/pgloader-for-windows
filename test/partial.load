@@ -1,0 +1,48 @@
+/*
+ * This test is ported from pgloader 2.x where it was defined as:
+ *
+ * [partial]
+ * table        = partial
+ * format       = text
+ * filename     = partial/partial.data
+ * field_sep    = %
+ * columns      = *
+ * only_cols    = 1-3, 5
+ *
+ */
+LOAD CSV
+     FROM inline (a, b, c, d, e)
+     INTO postgresql:///pgloader?csv.partial (a, b, c, e)
+
+     WITH drop indexes,
+          fields optionally enclosed by '"',
+          fields escaped by double-quote,
+          fields terminated by '%'
+
+      SET client_encoding to 'latin1',
+          work_mem to '12MB',
+          standard_conforming_strings to 'on'
+
+   BEFORE LOAD DO
+   $$ create schema if not exists csv; $$,
+   $$ drop table if exists csv.partial; $$,
+   $$ create table csv.partial (
+       a integer unique,
+       b text,
+       c text,
+       d text,
+       e text
+      );
+   $$,
+   $$ create index on csv.partial(b); $$ ;
+
+
+
+
+1%foo%bar%baz%hop
+2%foo%bar%baz%hop
+3%foo%bar%baz%hop
+4%foo%bar%baz%hop
+5%foo%bar%baz%hop
+6%foo%bar%baz%hop
+7%foo%bar%baz%hop

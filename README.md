@@ -25,4 +25,5 @@ cd pgloader
 make
 ```
 then you will see `pgloader.exe` in `\pgloader-3.6.9\build\bin`.
+
 Enjoy !

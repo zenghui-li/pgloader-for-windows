@@ -20,8 +20,9 @@ Before you build pgloader,you need to prepare the following environment on your 
 If you have installed the above tools but the terminal cannot recognize them, reopen the terminal or restart
 
 ## Next we will build
-  ```
-  cd pgloader
-  make
-  ```
-then you will see `pgloader.exe` in `\pgloader-3.6.9\build\bin`,enjoy
+```
+cd pgloader
+make
+```
+then you will see `pgloader.exe` in `\pgloader-3.6.9\build\bin`.
+Enjoy !

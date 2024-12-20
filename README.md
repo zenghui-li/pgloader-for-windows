@@ -5,10 +5,9 @@ You can follow my instructions below to build other [pgloader](https://github.co
 
 This is the [pgloader's Introduction](https://pgloader.io/).
 
-## At first
+## First
 ```
 git clone https://github.com/dimitri/pgloader.git
-cd pgloader
 ```
 
 Before you build pgloader,you need to prepare the following environment on your windows
@@ -21,4 +20,8 @@ Before you build pgloader,you need to prepare the following environment on your 
 If you have installed the above tools but the terminal cannot recognize them, reopen the terminal or restart
 
 ## Next we will build
-- 
+  ```
+  cd pgloader
+  make
+  ```
+then you will see `pgloader.exe` in `\pgloader-3.6.9\build\bin`,enjoy

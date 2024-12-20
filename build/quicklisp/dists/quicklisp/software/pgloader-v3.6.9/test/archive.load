@@ -1,0 +1,64 @@
+/*
+ * Loading from a ZIP archive containing CSV files. The full test can be
+ * done with using the archive found at
+ * http://geolite.maxmind.com/download/geoip/database/GeoLiteCity_CSV/GeoLiteCity-latest.zip
+ *
+ * And a very light version of this data set is found at
+ * http://pgsql.tapoueh.org/temp/foo.zip for quick testing.
+ */
+
+LOAD ARCHIVE
+   -- FROM http://pgsql.tapoueh.org/temp/foo.zip
+   FROM http://geolite.maxmind.com/download/geoip/database/GeoLiteCity_CSV/GeoLiteCity-latest.zip
+   INTO postgresql:///ip4r
+
+   BEFORE LOAD
+     DO
+       $$ create extension if not exists ip4r; $$,
+       $$ create schema if not exists geolite; $$
+
+     EXECUTE 'geolite.sql'
+
+   LOAD CSV
+        FROM FILENAME MATCHING ~/GeoLiteCity-Location.csv/
+             WITH ENCODING iso-8859-1
+             (
+                locId,
+                country,
+                region     [ null if blanks ],
+                city       [ null if blanks ],
+                postalCode [ null if blanks ],
+                latitude,
+                longitude,
+                metroCode  [ null if blanks ],
+                areaCode   [ null if blanks ]
+             )
+        INTO postgresql:///ip4r?geolite.location
+             (
+                locid,country,region,city,postalCode,
+                location point using (format nil "(~a,~a)" longitude latitude),
+                metroCode,areaCode
+             )
+        WITH skip header = 2,
+             fields optionally enclosed by '"',
+             fields escaped by double-quote,
+             fields terminated by ','
+
+  AND LOAD CSV
+        FROM FILENAME MATCHING ~/GeoLiteCity-Blocks.csv/
+             WITH ENCODING iso-8859-1
+             (
+                startIpNum, endIpNum, locId
+             )
+        INTO postgresql:///ip4r?geolite.blocks
+             (
+                iprange ip4r using (ip-range startIpNum endIpNum),
+                locId
+             )
+        WITH skip header = 2,
+             fields optionally enclosed by '"',
+             fields escaped by double-quote,
+             fields terminated by ','
+
+        AFTER LOAD DO
+          $$ create index blocks_ip4r_idx on geolite.blocks using gist(iprange); $$;

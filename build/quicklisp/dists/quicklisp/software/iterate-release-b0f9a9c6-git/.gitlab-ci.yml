@@ -1,0 +1,96 @@
+# Lifted from @etimmons' script for ASDF
+###############################################################################
+# Global configuration
+###############################################################################
+
+variables:
+  # Just let the runner fetch and update the submodules for us.
+  GIT_SUBMODULE_STRATEGY: normal
+  ABCL_IMAGE: clfoundation/abcl
+  ABCL_TAG: latest
+  CCL_IMAGE: clfoundation/ccl
+  CCL_TAG: latest
+  CLASP_IMAGE: clfoundation/clasp
+  CLASP_TAG: latest
+  CLISP_IMAGE: clfoundation/clisp
+  CLISP_TAG: latest
+  CMUCL_IMAGE: clfoundation/cmucl
+  CMUCL_TAG: latest
+  ECL_IMAGE: clfoundation/ecl
+  ECL_TAG: latest
+  SBCL_IMAGE: clfoundation/sbcl
+  SBCL_TAG: latest
+
+
+# This causes pipelines to be created only on the default branch, tags, merge
+# requests, and when triggered via the web interface.
+# workflow:
+#   rules:
+#     - if: $CI_MERGE_REQUEST_IID
+#     - if: $CI_COMMIT_TAG
+#     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+#     - if: $CI_COMMIT_BRANCH == "fix-asdf-test-op"
+#     - if: $CI_PIPELINE_SOURCE == "web"
+
+stages:
+  - regression
+
+###############################################################################
+# Testing Templates
+###############################################################################
+
+.Regression tests:
+  stage: regression
+  script:
+    - make test
+  artifacts:
+    paths:
+      - build/results/$l-test.text
+  needs: []
+
+###############################################################################
+# Actual test jobs - Makefile based harness
+###############################################################################
+
+ABCL regression tests:
+  extends: .Regression tests
+  image: $ABCL_IMAGE:$ABCL_TAG
+  variables:
+    l: abcl
+
+CCL regression tests:
+  extends: .Regression tests
+  image: $CCL_IMAGE:$CCL_TAG
+  variables:
+    l: ccl
+
+Clasp regression tests:
+  extends: .Regression tests
+  image: $CLASP_IMAGE:$CLASP_TAG
+  variables:
+    l: clasp
+
+# dropping because I don't have access to an image with ASDF installed.
+# CLISP regression tests:
+#   extends: .Regression tests
+#   image: $CLISP_IMAGE:$CLISP_TAG
+#   variables:
+#     l: clisp
+
+CMUCL regression tests:
+  extends: .Regression tests
+  image: $CMUCL_IMAGE:$CMUCL_TAG
+  variables:
+    l: cmucl
+
+ECL regression tests:
+  extends: .Regression tests
+  image: $ECL_IMAGE:$ECL_TAG
+  variables:
+    l: ecl
+
+SBCL regression tests:
+  extends: .Regression tests
+  image: $SBCL_IMAGE:$SBCL_TAG
+  variables:
+    l: sbcl

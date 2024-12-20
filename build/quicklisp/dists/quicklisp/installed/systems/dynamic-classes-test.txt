@@ -1,0 +1,1 @@
+dists/quicklisp/software/dynamic-classes-20231021-git/dynamic-classes-test.asd

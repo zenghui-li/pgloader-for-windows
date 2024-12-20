@@ -1,0 +1,9 @@
+*~
+*.abcl
+*.fas
+*.fasl
+*.*fsl
+*.lib
+*.sse2f
+world/
+doc/

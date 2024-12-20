@@ -1,0 +1,29 @@
+LIST-OF
+
+This library exemplifies how to use ASDF-FINALIZERS,
+and offers a way to implement lists with a uniform type of elements.
+
+Because of its reliance on ASDF-FINALIZERS,
+any file that directly or indirectly (via macro-expansion) uses LIST-OF
+must include (ASDF-FINALIZERS:FINAL-FORMS) as its last form
+you probably want to have your package :use :asdf-finalizers, and
+you probably also need to in your defsystem to either
+  :depends-on (:list-of)
+  :around-compile "asdf-finalizers:check-finalizers-around-compile"
+or to
+  :depends-on (:list-of)
+  :defsystem-depends-on (:asdf-finalizers)
+  :default-component-class :finalized-cl-source-file
+
+
+==== Exported Functionality ====
+
+LIST-OF defines the LIST-OF package from which it exports:
+
+DEFTYPE LIST-OF (TYPE)
+  type of proper lists all of the elements of which are of given TYPE.
+  Beware: the type checking predicate may never stop when fed a circular list.
+
+DEFTYPE VECTOR-OF (TYPE)
+  type of vectors all of the elements of which are of given TYPE.
+  The vector may be specialized as per UPGRADED-ARRAY-ELEMENT-TYPE.

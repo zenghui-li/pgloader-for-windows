@@ -1,0 +1,26 @@
+name: CI
+
+on: [push]
+
+jobs:
+  test:
+    name: ${{ matrix.lisp }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        lisp: [sbcl-bin]
+        os: [ubuntu-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Roswell
+        env:
+          LISP: ${{ matrix.lisp }}
+        run: curl -L https://raw.githubusercontent.com/roswell/roswell/master/scripts/install-for-ci.sh | sh -x
+      - name: Install Prove
+        run: ros install prove cl-utilities
+      - name: Run tests
+        run: |
+          PATH="~/.roswell/bin:$PATH"
+          ros -s quri-test
+          run-prove quri-test.asd

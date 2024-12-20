@@ -1,0 +1,87 @@
+ASDF-FINALIZERS
+
+This library allows you to implement and enforce proper finalization
+of compile-time constructs while building Lisp source files.
+It depends on ASDF 2.22.3 or later.
+
+TODO:
+* Add XCVB support.
+* Add SLIME support for proper :around-compile hooks.
+
+
+==== Exported Functionality ====
+
+asdf-finalizers defines and uses package ASDF-FINALIZERS.
+It uses ASDF 2.22.3's :around-compile hook mechanism and
+the :compile-check extension to its compile-file* to build stuff.
+
+
+macro FINAL-FORMS ()
+  This macro will expand into any final forms so far registered.
+  The forms will be expanded inside an
+    (EVAL-WHEN (:COMPILE-TOPLEVEL :LOAD-TOPLEVEL :EXECUTE) ...)
+  but you can override that with your own EVAL-WHEN.
+  You need to have finalizers enabled to use this macro (see WITH-FINALIZERS).
+  In a file that uses finalizers, you MUST include (FINAL-FORMS)
+  after the last finalizer was used and before the end of the file,
+  or the compilation will fail.
+  Typically, you will write (FINAL-FORMS) as the very last form in your file,
+  or if you didn't use the asdf-finalizers package, you will instead write
+  (ASDF-FINALIZERS:FINAL-FORMS).
+
+function EVAL-AT-TOPLEVEL (FORM &optional ALREADY-DONE-P-FORM WARNING &rest WARNING-ARGUMENTS)
+  This function, to be used within a macro, deftype, reader-macro, etc.,
+  will evaluate toplevel FORM now during the macroexpansion phase, but also
+  register it to be evaluated at the toplevel as part of the FINAL-FORMS,
+  so that assuming you use the FINAL-FORMS afterwards but before the end of current file,
+  so it is available to whoever load the associated FASL or CFASL.
+  If the FORM has already been registered, it is skipped.
+  Either now or when loading the (C?)FASL, the evaluation of FORM will be skipped
+  when ALREADY-DONE-P-FORM evaluates to a true value.
+  When finalizers are not enabled, warn with given warning and arguments or
+  with a default warning, unless ALREADY-DONE-P-FORM evaluated to a true value,
+  at which point we trust the user to somehow have done the right thing,
+  and a build from clean will hopefully catch him if he didn't.
+
+function REGISTER-FINAL-FORM (FORM)
+  This function, to be used within a macro, reader-macro, deftype, etc.,
+  will register a constant piece of code to the evaluated at toplevel
+  at the end of the current code fragment (e.g. file).
+
+function REGISTER-FINALIZER (THUNK)
+  This function, to be used within a macro, reader-macro, deftype, etc.,
+  will register a THUNK to be called during finalization.
+  Dependencies may be enforced by thunk calling thunk dependencies.
+  Any form returned by the THUNK will be included in the finalized code
+  after the code from any previously registered thunk of constant code fragment,
+  and after the code from any registered dependency.
+
+macro WITH-FINALIZERS ((&key FINALIZE) &body BODY)
+  Evaluate BODY in a context where finalizers are enabled.
+  By default, don't finalize, because we want to catch code
+  that fails to finalize in the same file that requires code finalization.
+  This macro is typically used by ASDF when you configure it as below.
+  For convenience, you may also use it to test code at the REPL;
+  you may then pass an argument FINALIZE with true value,
+  and WITH-FINALIZERS will evaluate finalization forms.
+
+function CHECK-FINALIZERS-AROUND-COMPILE (FUN)
+  Assuming your system :depends-on (:asdf-finalizers),
+  you may use this function as your :around-compile function
+  for an ASDF system, module or file, as in
+	:around-compile "asdf-finalizers:check-finalizers-around-compile"
+  This will allow you to use finalizers within covered source files,
+  and will issue an error if you fail to evaluate (FINAL-FORMS)
+  after the last finalizer was used and before the end of the file.
+  Alternatively, you may use ASDF::FINALIZED-CL-SOURCE-FILE below.
+  You may also have your own custom :around-compile hooks
+  chain into CHECK-FINALIZERS-AROUND-COMPILE
+  to achieve the same effect and more.
+
+class ASDF::FINALIZED-CL-SOURCE-FILE (CL-SOURCE-FILE)
+  Assuming your system :defsystem-depends-on (:asdf-finalizers),
+  you may use this class as your system's :default-component-class,
+  or as the class of a component as in
+	(:finalized-cl-source-file "foo" :depends-on ("bar" "baz"))
+  This will automatically declare CHECK-FINALIZERS-AROUND-COMPILE
+  as the relevant component's :around-compile hook.

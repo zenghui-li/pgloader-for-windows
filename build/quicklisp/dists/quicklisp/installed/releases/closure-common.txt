@@ -1,0 +1,1 @@
+dists/quicklisp/software/closure-common-20181018-git/

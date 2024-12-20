@@ -1,0 +1,19 @@
+Source: cl-rt
+Section: devel
+Priority: optional
+Maintainer: Debian Common Lisp Team <pkg-common-lisp-devel@lists.alioth.debian.org>
+Uploaders: Peter Van Eynde <pvaneynd@debian.org>
+Build-Depends-Indep: dh-lisp
+Build-Depends: debhelper (>= 7.0.0)
+Standards-Version: 3.8.2.0
+Homepage: http://www-2.cs.cmu.edu/afs/cs/project/ai-repository/ai/lang/lisp/code/testing/rt/
+Vcs-Git: http://git.debian.org/git/pkg-common-lisp/cl-rt.git
+
+Package: cl-rt
+Architecture: all
+Depends: ${misc:Depends}
+Description: Common Lisp regression tester from MIT
+ This is MIT's regression tester for Common Lisp programs. It provides a 
+ framework for writing
+ regression tests for Common Lisp packages. This package includes
+ Paul Dietz's modifications to the original MIT release.

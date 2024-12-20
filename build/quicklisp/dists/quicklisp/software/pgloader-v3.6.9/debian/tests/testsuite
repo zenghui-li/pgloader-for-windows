@@ -1,0 +1,11 @@
+#!/bin/sh
+
+set -eux
+
+case $USER in
+  root) PGSUPERUSER=postgres ;;
+  *) PGSUPERUSER=$USER ;;
+esac
+
+# use trust authentication to avoid scram failures on bullseye/buster/stretch/impish/focal/bionic
+PGLOADER=pgloader PGSUPERUSER=$PGSUPERUSER pg_virtualenv -i'-Atrust' make -C test prepare regress

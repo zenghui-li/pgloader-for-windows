@@ -1,0 +1,1 @@
+dists/quicklisp/software/cl-sqlite-20190813-git/sqlite.asd

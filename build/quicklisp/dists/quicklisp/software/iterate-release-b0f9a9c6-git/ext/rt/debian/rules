@@ -1,0 +1,43 @@
+#!/usr/bin/make -f
+
+pkg		:= rt
+debpkg  	:= cl-rt
+
+clc-source	:= usr/share/common-lisp/source
+clc-files	:= $(clc-source)/$(pkg)
+
+
+build:
+
+clean:
+	dh_testdir
+	dh_testroot
+	dh_clean
+
+install: build
+	dh_testdir
+	dh_testroot
+	dh_prep
+	dh_installdirs
+	dh_install $(pkg).asd $(pkg).lisp $(clc-files)
+
+binary-arch:
+
+binary-indep: install
+	dh_testdir
+	dh_testroot
+	dh_installdocs rt-doc.txt
+	dh_installexamples rt-test.lisp
+	dh_installchangelogs
+	dh_lisp
+	dh_compress
+	dh_fixperms
+	dh_installdeb
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+
+binary: binary-indep
+
+
+.PHONY: build clean binary-indep binary-arch binary install

@@ -1,0 +1,43 @@
+### Notes
+
+- We go from md to document to html
+
+We can't really :check (:compare) or :remove unless we 
+have a way to go from html to document or html to md.
+
+- How to handle multi-line responses.
+
+from doctest (documentation)[http://docs.python.org/lib/doctest-finding-examples.html]
+
+> Any expected output must immediately follow the final '>>> ' or '... ' line containing the code, and the expected output (if any) extends to the next '>>> ' or all-whitespace line.
+
+(there are lots of other good ideas in this document).
+
+Well known properties
+
+:search-locations
+:title
+:style-sheet
+:docs-package
+html
+style-sheets
+author
+docs-space-entity
+
+(document-property :xmlns "http://www.w3.org/1999/xhtml")
+(document-property :xmllang "en")
+(document-property :lang "en"))
+(document-property :header-comment)
+
+
+
+### Problems
+
+This causes an error
+
+<!--
+    {table-of-contents :start 2 :depth 3 :label "Table of Contents"}
+-->
+
+{today} causing an error in footnote
+

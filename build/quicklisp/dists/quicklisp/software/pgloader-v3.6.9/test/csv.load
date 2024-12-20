@@ -1,0 +1,50 @@
+/*
+ * This test is ported from pgloader 2.x where it was defined as:
+ *
+ * [csv]
+ * table            = csv
+ * format           = csv
+ * filename         = csv/csv.data
+ * field_size_limit = 512kB
+ * field_sep        = ,
+ * quotechar        = "
+ * columns          = x, y, a, b, d:6, c:5
+ * only_cols        = 3-6
+ * skip_head_lines  = 1
+ * truncate         = True
+ *
+ */
+
+LOAD CSV
+     FROM inline (x, y, a, b, c, "camelCase")
+     INTO postgresql:///pgloader?csv (a, b, "camelCase", c)
+
+     WITH truncate,
+          skip header = 1,
+          fields optionally enclosed by '"',
+          fields escaped by double-quote,
+          fields terminated by ','
+
+      SET client_encoding to 'latin1',
+          work_mem to '12MB',
+          standard_conforming_strings to 'on'
+
+   BEFORE LOAD DO
+    $$ drop table if exists csv; $$,
+    $$ create table csv (
+        a bigint,
+        b bigint,
+        c char(2),
+        "camelCase" text
+       );
+    $$;
+
+
+
+Stupid useless header with a © sign
+"2.6.190.56","2.6.190.63","33996344","33996351","GB","United Kingdom"
+"3.0.0.0","4.17.135.31","50331648","68257567","US","United States"
+"4.17.135.32","4.17.135.63","68257568","68257599","CA","Canada"
+"4.17.135.64","4.17.142.255","68257600","68259583","US","United States"
+"4.17.143.0","4.17.143.15","68259584","68259599","CA","Canada"
+"4.17.143.16","4.18.32.71","68259600","68296775","US","United States"

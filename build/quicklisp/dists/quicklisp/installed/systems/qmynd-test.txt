@@ -1,0 +1,1 @@
+dists/quicklisp/software/qmynd-20190710-git/tests/qmynd-test.asd

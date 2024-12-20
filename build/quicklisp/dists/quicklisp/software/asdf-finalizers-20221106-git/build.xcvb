@@ -1,0 +1,6 @@
+;;-*- Lisp -*-
+(module
+ (:fullname "asdf-finalizers"
+  :build-depends-on ((:asdf "asdf"))
+  :depends-on ("initialization")
+  :supersedes-asdf ("asdf-finalizers" ("list-of" "list-of"))))

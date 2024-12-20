@@ -1,0 +1,4 @@
+lisp-implementation-type: SBCL
+lisp-implementation-version: 2.3.2
+machine-type: X86
+machine-version: NIL

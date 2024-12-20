@@ -1,0 +1,72 @@
+#+TITLE: garbage-pools
+
+GARBAGE-POOLS is Common Lisp re-implementation the APR Pools for resource management.
+
+* API
+
+- pool :: The fundamental pool type.
+
+- with-garbage-pool :: ~((&optional (var '*pool*)) &body body)~
+
+Performs a series of operations on pool. Return the values returned by the body. Possible use named
+and unnamed pools.
+
+#+begin_src lisp
+(with-garbage-pool () (cleanup-register myobj clenup-fun))
+(with-garbage-pool (mypool) (cleanup-register myobj clenup-fun mypool))
+#+end_src
+
+- cleanup-register :: ~(object cleanup-fun &optional (pool *pool*))~
+
+Register a function to be called when a pool is cleared. Return object.
+
+#+begin_src lisp
+(with-garbage-pool ()
+  (cleanup-register (cffi:foreign-string-alloc "Hello world") #'cffi:foreign-string-free) ...)
+#+end_src
+
+
+- cleanup-pool :: ~(&optional (pool *pool*))~
+
+Run all the cleanups and clear pool.
+
+- cleanup-object :: ~(object &optional (pool *pool*))~
+
+Run the specified cleanup function immediately and unregister it. Use object instead of the object
+that was registered with the cleanup.
+
+#+begin_src lisp
+(with-garbage-pool ()
+  (let ((%str (cleanup-register (cffi:foreign-string-alloc "Hello world")
+                                #'cffi:foreign-string-free)))
+    (clenup-object %str)))
+#+end_src
+
+- cancel-object-cleanup :: ~(object &optional (pool *pool*))~
+
+Unregister object from pool without call cleanup function.
+
+#+begin_src lisp
+(with-garbage-pool ()
+  (let ((%str (cleanup-register (cffi:foreign-string-alloc "Hello world")
+                                #'cffi:foreign-string-free))) (cancel-object-clenup %str)))
+#+end_src
+
+- object-register :: ~(object &optional (pool *pool*))~
+
+Generic function for object registration without cleanup functions. It is use when cleanup functions
+possibly determine from type of the object (by default supports only pool and stream types). Return
+object.
+
+#+begin_src lisp
+(with-garbage-pool () (let ((stream (object-register (open #P"/tmp/data")))) ...))
+#+end_src
+
+
+- defcleanup :: ~(class cleanup-fun)~
+
+Bind clenup functions with object type. Necessary for use ~object-register~.
+
+#+begin_src lisp
+(defcleanup stream #'close)
+#+end_src

@@ -1,0 +1,9 @@
+.svn
+build
+dist
+*~
+*#
+*.fasl
+.git
+_darcs
+tests/long-test.csv

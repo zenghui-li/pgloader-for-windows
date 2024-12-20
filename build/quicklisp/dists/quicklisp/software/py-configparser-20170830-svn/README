@@ -1,0 +1,52 @@
+$URL: https://svn.common-lisp.net/py-configparser/trunk/README $
+$Id: README 19 2008-03-14 20:17:12Z ehuelsmann $
+
+py-configparser
+===============
+
+This package provides the same functionality as the Python configparser module,
+implemented in pure Common Lisp.
+
+
+Differences between the two
+===========================
+
+The CL version makes a strong distinction in the parser on one hand and the in-memory
+storage management on the other hand.  Because of it, the CL version doesn't call its
+objects 'Parser', but 'config' instead.
+
+The parser/writer part of the package provides the three functions READ-STREAM,
+READ-FILES and WRITE-STREAM, which map from the python variants 'readfp', 'read'
+and 'write'.
+
+
+API mapping
+===========
+
+The functions provided in the Python module (which are all methods of the ConfigParser
+class):
+
+ConfigParser() -> (make-config)
+defaults() ->  (defaults <config>)
+sections() ->  (sections <config>)
+add_section(name) -> (add-section <config> name)
+has_section(name) -> (has-section-p <config> name)
+options(section_name) -> (options <config> section-name)
+has_option(section_name, name) -> (has-option-p <config> section-name name)
+read(filenames) -> (read-files <config> filenames)
+readfd(fp) -> (read-stream <config> stream)
+get(section, option[, raw[, vars]]) ->
+          (get-option <config> section option &key expand defaults type)
+getint(section, option) -> [folded into get-option using 'type' key]
+getfloat(section, option) -> [folded into get-option using 'type' key]
+getboolean(section, option) -> [folded into get-option using 'type' key]
+items(section_name[, raw[, vars]]) -> (items <config> section-name &key expand defaults)
+set(section, option, value) -> (set-option <config> section-name option-name value)
+write(fp) -> (write-stream <config> stream)
+remove_option(section, option) -> (remove-option <config> section-name option-name)
+remove_section(section) -> (remove-section <config> section-name)
+
+Note that the above is just a simple mapping table, but is all you need to get
+you started.  Documentation from the ConfigParser module should sufficiently document
+this package.  However minor differences in parameter and method naming may occur.
+

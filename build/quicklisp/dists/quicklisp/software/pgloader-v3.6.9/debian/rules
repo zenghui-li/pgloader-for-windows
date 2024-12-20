@@ -1,0 +1,83 @@
+#!/usr/bin/make -f
+
+include /usr/share/dpkg/pkg-info.mk
+
+# get libsqlite3 package name from libsqlite3-dev
+LIBSQLITE := $(shell dpkg-query --showformat='$${Depends}' --show libsqlite3-dev | grep -o 'libsqlite[^ ]*')
+# make pgloader depend on the libssl package cl-plus-ssl depends on
+LIBSSL := $(shell dpkg-query --showformat='$${Depends}' --show cl-plus-ssl | grep -o 'libssl[^ ]*')
+
+BITS = $(shell dpkg-architecture -qDEB_BUILD_ARCH_BITS)
+ifeq ($(BITS),32)
+SIZE=1024
+else
+SIZE=16384
+endif
+
+MAKEFILE_VERSION = $(shell awk '/^VERSION/ { print $$3 }' Makefile)
+DOC_VERSION = $(shell awk '/^release/ { print $$3 }' docs/conf.py | tr -d "'")
+SPECFILE_VERSION = $(shell awk '/^Version/ { print $$2 }' pgloader.spec)
+DEBIAN_VERSION = $(shell dpkg-parsechangelog -SVersion | cut -d- -f 1)
+
+# buildd provides a build environment where $HOME is not writable, but the
+# CL compilers here will need to fill-in a per-user cache
+export HOME = $(CURDIR)/debian/home
+
+override_dh_auto_clean:
+	dh_auto_clean
+	rm -rf debian/home
+	# sanity checks on version number
+	[ "$(MAKEFILE_VERSION)" = "$(DOC_VERSION)" ] # Makefile = docs/conf.py version
+	[ "$(MAKEFILE_VERSION)" = "$(SPECFILE_VERSION)" ] # Makefile = pgloader.spec version
+	[ "$(MAKEFILE_VERSION)" = "$(DEBIAN_VERSION)" ] # Makefile = debian/changelog version
+
+override_dh_auto_build-indep:
+	# do nothing
+
+override_dh_auto_build-arch:
+	mkdir -p build/bin
+	mkdir -p $(HOME)
+	buildapp --require sb-posix						\
+		--require sb-bsd-sockets					\
+		--load /usr/share/common-lisp/source/cl-asdf/build/asdf.lisp	\
+		--asdf-path .							\
+		--asdf-tree /usr/share/common-lisp/systems			\
+		--load-system asdf-finalizers					\
+		--load-system asdf-system-connections				\
+		--load-system cffi						\
+		--load-system cl+ssl						\
+		--load-system mssql						\
+		--load src/hooks.lisp						\
+		--load-system pgloader						\
+		--entry pgloader:main						\
+		--dynamic-space-size $(SIZE)					\
+		--compress-core							\
+		--logfile buildapp.log						\
+		--output build/bin/pgloader					\
+			|| echo $$? > buildapp.fail
+	cat buildapp.log
+	test ! -f buildapp.fail
+	$(MAKE) -C docs html
+
+override_dh_auto_test:
+	PATH=$(CURDIR)/build/bin:$(PATH) debian/tests/testsuite
+
+override_dh_strip override_dh_dwz:
+	# do nothing, sbcl doesn't write any debug info
+
+override_dh_installman-arch:
+	mkdir -p debian/pgloader/usr/share/man/man1/
+	PATH=debian/pgloader/usr/bin:$(PATH) \
+	help2man --version-string $(DEB_VERSION_UPSTREAM) \
+		--no-info \
+		--name "extract, transform and load data into PostgreSQL" \
+		pgloader > \
+		debian/pgloader/usr/share/man/man1/pgloader.1
+
+override_dh_gencontrol:
+	dh_gencontrol -- \
+		-V"sqlite:Depends=$(LIBSQLITE)" \
+		-V"ssl:Depends=$(LIBSSL)"
+
+%:
+	dh $@

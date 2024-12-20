@@ -1,0 +1,34 @@
+#!/bin/sh
+
+# test needs root so we have a SSL certificate
+
+set -eux
+
+trap "rm -rf /tmp/pgloader" EXIT
+
+# check if cl-postmodern is new enough to support scram-sha-256
+postmodern=$(dpkg-query --show --showformat='${Version}' cl-postmodern)
+if dpkg --compare-versions "$postmodern" lt 20200101; then
+  AUTH="-i--auth-local=trust -i--auth-host=md5"
+fi
+
+pg_virtualenv ${AUTH:-} <<-'EOF'
+	set -eux
+
+	# force SSL connection
+	HBA=$(psql -XAtc 'SHOW hba_file')
+	sed -i -e 's/^host/hostssl/' $HBA
+	psql -XAtc 'SELECT pg_reload_conf()'
+
+	createdb pgloader
+	export PGDATABASE=pgloader
+	psql -XAtc 'create schema expected'
+
+	# test UNIX socket
+	rm -rf /tmp/pgloader
+	PGHOST=/var/run/postgresql su -c 'pgloader --debug --regress test/allcols.load' postgres
+
+	# test SSL connection
+	rm -rf /tmp/pgloader
+	PGSSLMODE=require pgloader --debug --regress test/allcols.load
+EOF

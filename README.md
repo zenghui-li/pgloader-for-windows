@@ -1,3 +1,5 @@
+
+
 # pgloader-for-windows
 Build on Windows 11 with pgloader 3.6.9 release version for Migrate from MySQL to PostgreSQL
 
@@ -20,10 +22,12 @@ Before you build pgloader,you need to prepare the following environment on your 
 If you have installed the above tools but the terminal cannot recognize them, reopen the terminal or restart
 
 ## Next we will build
+
+Open the **MSYS2 terminal**, then run:
 ```
 cd pgloader
 make
 ```
-then you will see `pgloader.exe` in `\pgloader-3.6.9\build\bin`.
+then you will see `pgloader.exe` in `bin/`.
 
 Enjoy !
